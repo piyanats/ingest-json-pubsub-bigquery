@@ -1,0 +1,583 @@
+[
+  {
+    "name": "insertedAt",
+    "mode": "NULLABLE",
+    "type": "DATETIME",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "uuid",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "bahtToPoint",
+    "mode": "NULLABLE",
+    "type": "FLOAT",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "baoQueue",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "beforeAt",
+    "mode": "NULLABLE",
+    "type": "DATETIME",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "billNo",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "billPaymentData",
+    "mode": "NULLABLE",
+    "type": "JSON",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "branchCode",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "branchName",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "businessDate",
+    "mode": "NULLABLE",
+    "type": "DATETIME",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "campaign",
+    "mode": "NULLABLE",
+    "type": "JSON",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "cancelProductCount",
+    "mode": "NULLABLE",
+    "type": "INTEGER",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "coPromotionCode",
+    "mode": "NULLABLE",
+    "type": "JSON",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "coupon",
+    "mode": "NULLABLE",
+    "type": "JSON",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "couponItem",
+    "mode": "NULLABLE",
+    "type": "JSON",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "createdAt",
+    "mode": "NULLABLE",
+    "type": "DATETIME",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "createdDate",
+    "mode": "NULLABLE",
+    "type": "DATE",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "customer",
+    "mode": "NULLABLE",
+    "type": "JSON",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "directDiscount",
+    "mode": "NULLABLE",
+    "type": "JSON",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "discount",
+    "mode": "NULLABLE",
+    "type": "FLOAT",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "exchange",
+    "mode": "NULLABLE",
+    "type": "FLOAT",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "gotFreeBill",
+    "mode": "NULLABLE",
+    "type": "BOOLEAN",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "isActive",
+    "mode": "NULLABLE",
+    "type": "BOOLEAN",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "isCB",
+    "mode": "NULLABLE",
+    "type": "BOOLEAN",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "isCalVat",
+    "mode": "NULLABLE",
+    "type": "BOOLEAN",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "isGRPC",
+    "mode": "NULLABLE",
+    "type": "BOOLEAN",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "itemTotal",
+    "mode": "NULLABLE",
+    "type": "INTEGER",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "kBaoData",
+    "mode": "NULLABLE",
+    "type": "JSON",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "paymentInput",
+    "mode": "NULLABLE",
+    "type": "FLOAT",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "pointCurrent",
+    "mode": "NULLABLE",
+    "type": "INTEGER",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "pointExpireDate",
+    "mode": "NULLABLE",
+    "type": "DATETIME",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "pointGet",
+    "mode": "NULLABLE",
+    "type": "INTEGER",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "pointUse",
+    "mode": "NULLABLE",
+    "type": "INTEGER",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "posCode",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "posVersion",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "premiumItem",
+    "mode": "NULLABLE",
+    "type": "JSON",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "priceBaseTotal",
+    "mode": "NULLABLE",
+    "type": "FLOAT",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "priceCalcVat",
+    "mode": "NULLABLE",
+    "type": "FLOAT",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "priceDiscount",
+    "mode": "NULLABLE",
+    "type": "FLOAT",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "priceNet",
+    "mode": "NULLABLE",
+    "type": "FLOAT",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "priceNonCalcVat",
+    "mode": "NULLABLE",
+    "type": "FLOAT",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "priceVat",
+    "mode": "NULLABLE",
+    "type": "FLOAT",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "productTotal",
+    "mode": "NULLABLE",
+    "type": "INTEGER",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "promotion",
+    "mode": "NULLABLE",
+    "type": "JSON",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "registrationNo",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "remark1",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "remark2",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "remark3",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "returnBillReference",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "returnBillType",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "returnReasonCode",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "returnReasonDesc",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "round",
+    "mode": "NULLABLE",
+    "type": "FLOAT",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "rtc",
+    "mode": "NULLABLE",
+    "type": "JSON",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "saleType",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "sellingItem",
+    "mode": "NULLABLE",
+    "type": "JSON",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "shiftCode",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "sumCanCoupon",
+    "mode": "NULLABLE",
+    "type": "FLOAT",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "sumCanNotCoupon",
+    "mode": "NULLABLE",
+    "type": "FLOAT",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "synced",
+    "mode": "NULLABLE",
+    "type": "BOOLEAN",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "tenders",
+    "mode": "NULLABLE",
+    "type": "JSON",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "terminalId",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "type",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "updatedAt",
+    "mode": "NULLABLE",
+    "type": "DATETIME",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "updateAt",
+    "mode": "NULLABLE",
+    "type": "DATETIME",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "username",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "lineOACoupon",
+    "mode": "NULLABLE",
+    "type": "JSON",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "vatRate",
+    "mode": "NULLABLE",
+    "type": "FLOAT",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "isPosAdmin",
+    "mode": "NULLABLE",
+    "type": "BOOLEAN",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "serverTimestamp",
+    "mode": "NULLABLE",
+    "type": "DATETIME",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "topUpPaymentData",
+    "mode": "NULLABLE",
+    "type": "JSON",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "secondCurrency",
+    "mode": "NULLABLE",
+    "type": "JSON",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "isOverLimitDay",
+    "mode": "NULLABLE",
+    "type": "BOOLEAN",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "mission",
+    "mode": "NULLABLE",
+    "type": "JSON",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "customerOrder",
+    "mode": "NULLABLE",
+    "type": "JSON",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "BankingAgentData",
+    "mode": "NULLABLE",
+    "type": "JSON",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "comment",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "addonItem",
+    "mode": "NULLABLE",
+    "type": "JSON",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "docSavedAt",
+    "mode": "NULLABLE",
+    "type": "DATETIME",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "isRedeemPremiumItem",
+    "mode": "NULLABLE",
+    "type": "BOOLEAN",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "orderNo",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "premiumRedeemData",
+    "mode": "NULLABLE",
+    "type": "JSON",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "receiptReferenceCode",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  }
+]
