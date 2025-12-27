@@ -7,6 +7,7 @@ This project is a data ingestion pipeline designed to automatically process JSON
 *   **Cost Optimized:** Uses BigQuery **Batch Load Jobs** (`load_table_from_json`) instead of streaming inserts.
 *   **Memory Optimized:** Implements **in-place data modification** (`in_place=True`) to minimize RAM usage during processing.
 *   **Resilient:** Implements **Dead Letter Topic (DLT)** routing for failed messages to prevent infinite retry loops.
+*   **Modern Python:** Utilizes Python 3.12+ features (Type Hinting, `zoneinfo`).
 
 ## Architecture
 
@@ -33,17 +34,25 @@ graph LR
     *   Uses `client.load_table_from_json` (Batch Load).
     *   Iterates through records using **in-place** modification.
 *   **`pubsub_publisher.py`**: Handles publishing failure events to the Dead Letter Topic.
-*   **`datetime_converter.py`**: Utility for parsing and converting datetimes with `in_place=True` support.
+*   **`datetime_converter.py`**: Utility for parsing and converting datetimes with `in_place=True` support. Uses `zoneinfo`.
 *   **`pubsub_listener.py`**: Manages the subscription connection.
 *   **`gcs_handler.py`**: Downloads JSON files from GCS.
 *   **`config.py`**: Configuration management.
+*   **`setup_env.sh`**: Automated environment setup script using `uv`.
 
 ## Setup & Usage
 
 ### Prerequisites
-*   Python 3.8+
+*   **Python 3.12+**
 *   Google Cloud Credentials (ADC)
 *   `.env` file configured
+
+### Installation
+Recommended method using `setup_env.sh`:
+```bash
+./setup_env.sh
+source .venv/bin/activate
+```
 
 ### Configuration (`.env`)
 Ensure `MAX_MESSAGES` is set conservatively (e.g., `1` or `2`) if processing large files.

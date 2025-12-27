@@ -23,10 +23,11 @@ Python Application (this project)
 - **Dead Letter Handling**: Automatically routes failed messages to a Dead Letter Topic for later analysis, preventing infinite retry loops.
 - **Automatic Datetime Conversion**: Normalizes all datetime fields to `Asia/Bangkok` timezone.
 - **Schema-Driven**: Dynamically identifies datetime fields using the BigQuery schema file.
+- **Modern Python**: Built with Python 3.12+ features for better performance and type safety.
 
 ## Prerequisites
 
-- Python 3.8 or higher
+- **Python 3.12** or higher
 - Google Cloud Platform account with enabled APIs:
   - Cloud Storage
   - Cloud Pub/Sub
@@ -39,6 +40,16 @@ Python Application (this project)
   - `roles/bigquery.jobUser`
 
 ## Installation
+
+### Automated Setup (Recommended)
+We provide a script to automatically set up the environment using `uv` (a fast Python package installer).
+
+```bash
+./setup_env.sh
+```
+This will install `uv`, create a virtual environment in `.venv`, and install all dependencies.
+
+### Manual Setup
 
 1. Clone the repository:
 ```bash
@@ -92,10 +103,19 @@ ACK_DEADLINE_SECONDS=60
 
 ## Usage
 
-Run the pipeline:
-```bash
-python main.py
-```
+1. Activate the environment (if not already active):
+   ```bash
+   # If using setup_env.sh
+   source .venv/bin/activate
+   
+   # If using manual setup
+   source venv/bin/activate
+   ```
+
+2. Run the pipeline:
+   ```bash
+   python main.py
+   ```
 
 ### How it works:
 1.  **Listen**: Waits for Pub/Sub messages triggering on GCS file upload.
@@ -127,6 +147,7 @@ If `PUBSUB_DEAD_LETTER_TOPIC_ID` is not configured, failed messages are Negative
 ├── pubsub_listener.py     # Message consumer
 ├── pubsub_publisher.py    # Dead Letter publisher
 ├── config.py              # Config validation
+├── setup_env.sh           # Environment setup script
 ├── table_schema.json      # BigQuery Schema
 └── requirements.txt       # Dependencies
 ```
