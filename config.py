@@ -14,6 +14,7 @@ class Config:
     # Pub/Sub Configuration
     PUBSUB_SUBSCRIPTION_ID = os.getenv('PUBSUB_SUBSCRIPTION_ID')
     PUBSUB_TOPIC_ID = os.getenv('PUBSUB_TOPIC_ID', '')
+    PUBSUB_DEAD_LETTER_TOPIC_ID = os.getenv('PUBSUB_DEAD_LETTER_TOPIC_ID')
 
     # GCS Configuration
     GCS_BUCKET_NAME = os.getenv('GCS_BUCKET_NAME')
