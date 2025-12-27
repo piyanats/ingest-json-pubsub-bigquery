@@ -2,6 +2,7 @@ from datetime import datetime
 from dateutil import parser
 import pytz
 import logging
+import copy
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,12 @@ class DateTimeConverter:
                 dt = parser.parse(datetime_value)
             # Handle timestamp (int or float)
             elif isinstance(datetime_value, (int, float)):
-                dt = datetime.fromtimestamp(datetime_value, tz=pytz.UTC)
+                # Check if timestamp is in milliseconds (common in JavaScript)
+                # Timestamps after year 3000 are likely in milliseconds
+                if datetime_value > 32503680000:  # Jan 1, 3000 in seconds
+                    dt = datetime.fromtimestamp(datetime_value / 1000, tz=pytz.UTC)
+                else:
+                    dt = datetime.fromtimestamp(datetime_value, tz=pytz.UTC)
             else:
                 logger.warning(f"Unsupported datetime type: {type(datetime_value)}")
                 return None
@@ -64,10 +70,11 @@ class DateTimeConverter:
         Returns:
             Modified record with converted datetime fields
         """
-        converted_record = record.copy()
+        # Use deep copy to avoid modifying nested structures
+        converted_record = copy.deepcopy(record)
 
         for field in datetime_fields:
-            if field in converted_record:
+            if field in converted_record and converted_record[field] is not None:
                 converted_value = self.convert_to_target_timezone(converted_record[field])
                 converted_record[field] = converted_value
 

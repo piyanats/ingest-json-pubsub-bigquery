@@ -9,6 +9,7 @@ and inserts the data into BigQuery.
 
 import logging
 import sys
+import signal
 from config import Config
 from gcs_handler import GCSHandler
 from bigquery_loader import BigQueryLoader
@@ -51,7 +52,27 @@ class DataIngestionPipeline:
         # Ensure BigQuery table exists
         self.bq_loader.create_table_if_not_exists()
 
+        # Track listener for cleanup
+        self.listener = None
+        self.shutdown_requested = False
+
         logger.info("Pipeline initialized successfully")
+
+    def request_shutdown(self, signum=None, frame=None):
+        """Request graceful shutdown"""
+        logger.info("Shutdown requested, cleaning up...")
+        self.shutdown_requested = True
+
+    def cleanup(self):
+        """Cleanup resources"""
+        logger.info("Cleaning up resources...")
+        # Close GCS client
+        if hasattr(self.gcs_handler, 'client'):
+            self.gcs_handler.client.close()
+        # Close BigQuery client
+        if hasattr(self.bq_loader, 'client'):
+            self.bq_loader.client.close()
+        logger.info("Cleanup complete")
 
     def process_message(self, filename, message):
         """
@@ -101,8 +122,12 @@ class DataIngestionPipeline:
         """Start the pipeline"""
         logger.info("Starting data ingestion pipeline...")
 
+        # Setup signal handlers
+        signal.signal(signal.SIGINT, self.request_shutdown)
+        signal.signal(signal.SIGTERM, self.request_shutdown)
+
         # Create Pub/Sub listener
-        listener = PubSubListener(
+        self.listener = PubSubListener(
             project_id=Config.GCP_PROJECT_ID,
             subscription_id=Config.PUBSUB_SUBSCRIPTION_ID,
             callback=self.process_message,
@@ -110,12 +135,16 @@ class DataIngestionPipeline:
             ack_deadline=Config.ACK_DEADLINE_SECONDS
         )
 
-        # Start listening
-        listener.listen()
+        try:
+            # Start listening
+            self.listener.listen()
+        finally:
+            self.cleanup()
 
 
 def main():
     """Main entry point"""
+    pipeline = None
     try:
         pipeline = DataIngestionPipeline()
         pipeline.run()
@@ -124,6 +153,9 @@ def main():
     except Exception as e:
         logger.error(f"Pipeline failed: {e}", exc_info=True)
         sys.exit(1)
+    finally:
+        if pipeline:
+            pipeline.cleanup()
 
 
 if __name__ == '__main__':
