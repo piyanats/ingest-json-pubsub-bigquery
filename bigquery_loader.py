@@ -65,17 +65,18 @@ class BigQueryLoader:
         logger.info(f"Identified {len(datetime_fields)} datetime fields: {datetime_fields}")
         return datetime_fields
 
-    def convert_record(self, record):
+    def convert_record(self, record, in_place=False):
         """
         Convert datetime fields in record to target timezone
 
         Args:
             record: Dictionary containing the data record
+            in_place: If True, modifies the record directly.
 
         Returns:
             Converted record
         """
-        return self.datetime_converter.convert_record_datetimes(record, self.datetime_fields)
+        return self.datetime_converter.convert_record_datetimes(record, self.datetime_fields, in_place=in_place)
 
     def insert_record(self, record):
         """
@@ -94,11 +95,11 @@ class BigQueryLoader:
 
     def insert_records(self, records, max_retries=3):
         """
-        Insert multiple records into BigQuery with retry logic
-
+        Insert multiple records into BigQuery using Load Job (Batch Insert) for cost optimization.
+        
         Args:
             records: List of dictionaries containing data records
-            max_retries: Maximum number of retry attempts
+            max_retries: Maximum number of retry attempts (Not used for Load Jobs in the same way, kept for interface compatibility)
 
         Returns:
             True if successful, False otherwise
@@ -107,36 +108,37 @@ class BigQueryLoader:
             logger.warning("No records to insert")
             return True
 
-        # Convert datetime fields for all records
-        converted_records = [self.convert_record(record) for record in records]
+        # Convert datetime fields for all records IN-PLACE to save memory
+        for record in records:
+            self.convert_record(record, in_place=True)
 
-        # Retry with exponential backoff
-        for attempt in range(max_retries + 1):
-            try:
-                # Insert rows
-                errors = self.client.insert_rows_json(self.table_ref, converted_records)
+        job_config = bigquery.LoadJobConfig(
+            schema=self.schema,
+            write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
+            source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
+        )
 
-                if errors:
-                    logger.error(f"Encountered errors while inserting rows: {errors}")
-                    return False
-                else:
-                    logger.info(f"Successfully inserted {len(converted_records)} record(s) into {self.table_ref}")
-                    return True
+        try:
+            # Create a Load Job (Batch Insert)
+            # This is generally free compared to streaming inserts
+            job = self.client.load_table_from_json(
+                records,  # Use the modified records directly
+                self.table_ref,
+                job_config=job_config
+            )
 
-            except (google_exceptions.ServerError, google_exceptions.TooManyRequests) as e:
-                if attempt < max_retries:
-                    wait_time = 2 ** attempt  # Exponential backoff: 1, 2, 4 seconds
-                    logger.warning(f"Transient error inserting records (attempt {attempt + 1}/{max_retries + 1}): {e}. Retrying in {wait_time}s...")
-                    time.sleep(wait_time)
-                else:
-                    logger.error(f"Failed to insert records after {max_retries + 1} attempts: {e}")
-                    return False
+            # Wait for the job to complete
+            job.result()
 
-            except Exception as e:
-                logger.error(f"Failed to insert records into BigQuery: {e}", exc_info=True)
-                return False
+            logger.info(f"Successfully loaded {len(records)} record(s) into {self.table_ref}")
+            return True
 
-        return False
+        except Exception as e:
+            logger.error(f"Failed to load records into BigQuery: {e}", exc_info=True)
+            # Check for specific job errors
+            if hasattr(e, 'errors') and e.errors:
+                logger.error(f"Job errors: {e.errors}")
+            return False
 
     def create_table_if_not_exists(self):
         """Create the BigQuery table if it doesn't exist"""

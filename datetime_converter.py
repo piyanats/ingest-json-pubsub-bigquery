@@ -59,23 +59,27 @@ class DateTimeConverter:
             logger.error(f"Failed to convert datetime '{datetime_value}': {e}")
             return None
 
-    def convert_record_datetimes(self, record, datetime_fields):
+    def convert_record_datetimes(self, record, datetime_fields, in_place=False):
         """
         Convert all datetime fields in a record to target timezone
 
         Args:
             record: Dictionary containing the data record
             datetime_fields: List of field names that contain datetime values
+            in_place: If True, modifies the record directly. If False, creates a deep copy.
 
         Returns:
             Modified record with converted datetime fields
         """
-        # Use deep copy to avoid modifying nested structures
-        converted_record = copy.deepcopy(record)
+        if in_place:
+            target_record = record
+        else:
+            # Use deep copy to avoid modifying nested structures
+            target_record = copy.deepcopy(record)
 
         for field in datetime_fields:
-            if field in converted_record and converted_record[field] is not None:
-                converted_value = self.convert_to_target_timezone(converted_record[field])
-                converted_record[field] = converted_value
+            if field in target_record and target_record[field] is not None:
+                converted_value = self.convert_to_target_timezone(target_record[field])
+                target_record[field] = converted_value
 
-        return converted_record
+        return target_record
