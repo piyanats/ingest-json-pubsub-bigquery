@@ -1,3 +1,4 @@
+import json
 import logging
 from google.cloud import pubsub_v1
 from concurrent.futures import TimeoutError
@@ -28,6 +29,36 @@ class PubSubListener:
         self.subscriber = pubsub_v1.SubscriberClient()
         self.subscription_path = self.subscriber.subscription_path(project_id, subscription_id)
 
+    def _parse_gcs_notification(self, message_data):
+        """
+        Parse GCS notification message to extract filename
+
+        Args:
+            message_data: Raw message data bytes
+
+        Returns:
+            Filename from GCS notification, or the decoded string if not JSON
+        """
+        try:
+            decoded = message_data.decode('utf-8')
+
+            # Try to parse as JSON (GCS notification format)
+            try:
+                notification = json.loads(decoded)
+                # GCS notifications have 'name' field with the object name
+                if 'name' in notification:
+                    return notification['name']
+            except json.JSONDecodeError:
+                # Not JSON, treat as plain filename
+                pass
+
+            # Fallback to treating the entire message as filename
+            return decoded
+
+        except UnicodeDecodeError as e:
+            logger.error(f"Failed to decode message data: {e}")
+            return None
+
     def _message_callback(self, message):
         """
         Internal callback to handle incoming messages
@@ -36,8 +67,14 @@ class PubSubListener:
             message: Pub/Sub message object
         """
         try:
-            # Decode message data
-            filename = message.data.decode('utf-8')
+            # Parse GCS notification or plain filename
+            filename = self._parse_gcs_notification(message.data)
+
+            if filename is None:
+                logger.error("Failed to parse filename from message")
+                message.nack()
+                return
+
             logger.info(f"Received message: {filename}")
 
             # Call the user-provided callback
@@ -52,7 +89,7 @@ class PubSubListener:
                 logger.warning(f"Message nacked: {filename}")
 
         except Exception as e:
-            logger.error(f"Error processing message: {e}")
+            logger.error(f"Error processing message: {e}", exc_info=True)
             message.nack()
 
     def listen(self):
@@ -110,7 +147,13 @@ class PubSubListener:
 
             for received_message in response.received_messages:
                 try:
-                    filename = received_message.message.data.decode('utf-8')
+                    # Parse GCS notification or plain filename
+                    filename = self._parse_gcs_notification(received_message.message.data)
+
+                    if filename is None:
+                        logger.error("Failed to parse filename from message")
+                        continue
+
                     logger.info(f"Received message: {filename}")
 
                     # Call the user-provided callback
@@ -123,7 +166,7 @@ class PubSubListener:
                         logger.warning(f"Callback failed for message: {filename}")
 
                 except Exception as e:
-                    logger.error(f"Error processing message: {e}")
+                    logger.error(f"Error processing message: {e}", exc_info=True)
 
             # Acknowledge successful messages
             if ack_ids:

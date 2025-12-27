@@ -1,4 +1,5 @@
 import os
+import pytz
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -24,8 +25,21 @@ class Config:
 
     # Application Configuration
     TARGET_TIMEZONE = os.getenv('TARGET_TIMEZONE', 'Asia/Bangkok')
-    MAX_MESSAGES = int(os.getenv('MAX_MESSAGES', '10'))
-    ACK_DEADLINE_SECONDS = int(os.getenv('ACK_DEADLINE_SECONDS', '60'))
+
+    # Parse integer values with error handling
+    try:
+        MAX_MESSAGES = int(os.getenv('MAX_MESSAGES', '10'))
+        if MAX_MESSAGES <= 0:
+            raise ValueError("MAX_MESSAGES must be positive")
+    except ValueError as e:
+        raise ValueError(f"Invalid MAX_MESSAGES value: {e}")
+
+    try:
+        ACK_DEADLINE_SECONDS = int(os.getenv('ACK_DEADLINE_SECONDS', '60'))
+        if ACK_DEADLINE_SECONDS <= 0:
+            raise ValueError("ACK_DEADLINE_SECONDS must be positive")
+    except ValueError as e:
+        raise ValueError(f"Invalid ACK_DEADLINE_SECONDS value: {e}")
 
     @classmethod
     def validate(cls):
@@ -42,5 +56,11 @@ class Config:
 
         if missing:
             raise ValueError(f"Missing required configuration: {', '.join(missing)}")
+
+        # Validate timezone
+        try:
+            pytz.timezone(cls.TARGET_TIMEZONE)
+        except pytz.exceptions.UnknownTimeZoneError:
+            raise ValueError(f"Invalid timezone: {cls.TARGET_TIMEZONE}")
 
         return True

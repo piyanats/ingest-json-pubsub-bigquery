@@ -1,6 +1,8 @@
 import json
 import logging
+import time
 from google.cloud import bigquery
+from google.api_core import exceptions as google_exceptions
 from datetime_converter import DateTimeConverter
 
 logger = logging.getLogger(__name__)
@@ -90,12 +92,13 @@ class BigQueryLoader:
 
         return self.insert_records([converted_record])
 
-    def insert_records(self, records):
+    def insert_records(self, records, max_retries=3):
         """
-        Insert multiple records into BigQuery
+        Insert multiple records into BigQuery with retry logic
 
         Args:
             records: List of dictionaries containing data records
+            max_retries: Maximum number of retry attempts
 
         Returns:
             True if successful, False otherwise
@@ -104,23 +107,36 @@ class BigQueryLoader:
             logger.warning("No records to insert")
             return True
 
-        try:
-            # Convert datetime fields for all records
-            converted_records = [self.convert_record(record) for record in records]
+        # Convert datetime fields for all records
+        converted_records = [self.convert_record(record) for record in records]
 
-            # Insert rows
-            errors = self.client.insert_rows_json(self.table_ref, converted_records)
+        # Retry with exponential backoff
+        for attempt in range(max_retries + 1):
+            try:
+                # Insert rows
+                errors = self.client.insert_rows_json(self.table_ref, converted_records)
 
-            if errors:
-                logger.error(f"Encountered errors while inserting rows: {errors}")
+                if errors:
+                    logger.error(f"Encountered errors while inserting rows: {errors}")
+                    return False
+                else:
+                    logger.info(f"Successfully inserted {len(converted_records)} record(s) into {self.table_ref}")
+                    return True
+
+            except (google_exceptions.ServerError, google_exceptions.TooManyRequests) as e:
+                if attempt < max_retries:
+                    wait_time = 2 ** attempt  # Exponential backoff: 1, 2, 4 seconds
+                    logger.warning(f"Transient error inserting records (attempt {attempt + 1}/{max_retries + 1}): {e}. Retrying in {wait_time}s...")
+                    time.sleep(wait_time)
+                else:
+                    logger.error(f"Failed to insert records after {max_retries + 1} attempts: {e}")
+                    return False
+
+            except Exception as e:
+                logger.error(f"Failed to insert records into BigQuery: {e}", exc_info=True)
                 return False
-            else:
-                logger.info(f"Successfully inserted {len(converted_records)} record(s) into {self.table_ref}")
-                return True
 
-        except Exception as e:
-            logger.error(f"Failed to insert records into BigQuery: {e}")
-            return False
+        return False
 
     def create_table_if_not_exists(self):
         """Create the BigQuery table if it doesn't exist"""
