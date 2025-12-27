@@ -1,5 +1,6 @@
 import json
 import logging
+from typing import Callable, Any
 from google.cloud import pubsub_v1
 from concurrent.futures import TimeoutError
 
@@ -9,7 +10,14 @@ logger = logging.getLogger(__name__)
 class PubSubListener:
     """Handles Pub/Sub message listening and processing"""
 
-    def __init__(self, project_id, subscription_id, callback, max_messages=10, ack_deadline=60):
+    def __init__(
+        self, 
+        project_id: str, 
+        subscription_id: str, 
+        callback: Callable[[str, Any], bool], 
+        max_messages: int = 10, 
+        ack_deadline: int = 60
+    ) -> None:
         """
         Initialize Pub/Sub listener
 
@@ -29,7 +37,7 @@ class PubSubListener:
         self.subscriber = pubsub_v1.SubscriberClient()
         self.subscription_path = self.subscriber.subscription_path(project_id, subscription_id)
 
-    def _parse_gcs_notification(self, message_data):
+    def _parse_gcs_notification(self, message_data: bytes) -> str | None:
         """
         Parse GCS notification message to extract filename
 
@@ -59,7 +67,7 @@ class PubSubListener:
             logger.error(f"Failed to decode message data: {e}")
             return None
 
-    def _message_callback(self, message):
+    def _message_callback(self, message: Any) -> None:
         """
         Internal callback to handle incoming messages
 
@@ -92,7 +100,7 @@ class PubSubListener:
             logger.error(f"Error processing message: {e}", exc_info=True)
             message.nack()
 
-    def listen(self):
+    def listen(self) -> None:
         """
         Start listening for Pub/Sub messages (blocking)
 
@@ -119,7 +127,7 @@ class PubSubListener:
             logger.info("Received keyboard interrupt, shutting down...")
             streaming_pull_future.cancel()
 
-    def pull_once(self, max_messages=None):
+    def pull_once(self, max_messages: int | None = None) -> int:
         """
         Pull messages once (non-blocking)
 

@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 from google.cloud import pubsub_v1
 
 logger = logging.getLogger(__name__)
@@ -6,7 +7,7 @@ logger = logging.getLogger(__name__)
 class PubSubPublisher:
     """Handles publishing messages to Pub/Sub"""
 
-    def __init__(self, project_id, topic_id):
+    def __init__(self, project_id: str, topic_id: str) -> None:
         """
         Initialize Pub/Sub publisher
 
@@ -19,7 +20,7 @@ class PubSubPublisher:
         self.publisher = pubsub_v1.PublisherClient()
         self.topic_path = self.publisher.topic_path(project_id, topic_id)
 
-    def publish(self, data, **attributes):
+    def publish(self, data: str | bytes, **attributes: str) -> str | None:
         """
         Publish a message to the topic
 
@@ -31,11 +32,14 @@ class PubSubPublisher:
             Message ID if successful, None otherwise
         """
         try:
+            encoded_data: bytes
             if isinstance(data, str):
-                data = data.encode('utf-8')
+                encoded_data = data.encode('utf-8')
+            else:
+                encoded_data = data
             
-            future = self.publisher.publish(self.topic_path, data, **attributes)
-            message_id = future.result()
+            future = self.publisher.publish(self.topic_path, encoded_data, **attributes)
+            message_id: str = future.result()
             
             logger.info(f"Published message {message_id} to {self.topic_path}")
             return message_id

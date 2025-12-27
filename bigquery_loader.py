@@ -1,6 +1,7 @@
 import json
 import logging
 import time
+from typing import Any
 from google.cloud import bigquery
 from google.api_core import exceptions as google_exceptions
 from datetime_converter import DateTimeConverter
@@ -11,7 +12,14 @@ logger = logging.getLogger(__name__)
 class BigQueryLoader:
     """Handles data loading into BigQuery"""
 
-    def __init__(self, project_id, dataset_id, table_id, schema_file='table_schema.json', target_timezone='Asia/Bangkok'):
+    def __init__(
+        self, 
+        project_id: str, 
+        dataset_id: str, 
+        table_id: str, 
+        schema_file: str = 'table_schema.json', 
+        target_timezone: str = 'Asia/Bangkok'
+    ) -> None:
         """
         Initialize BigQuery loader
 
@@ -30,17 +38,17 @@ class BigQueryLoader:
         self.datetime_converter = DateTimeConverter(target_timezone)
 
         # Load schema and identify datetime fields
-        self.schema = self._load_schema(schema_file)
-        self.datetime_fields = self._get_datetime_fields()
+        self.schema: list[bigquery.SchemaField] = self._load_schema(schema_file)
+        self.datetime_fields: list[str] = self._get_datetime_fields()
 
-    def _load_schema(self, schema_file):
+    def _load_schema(self, schema_file: str) -> list[bigquery.SchemaField]:
         """Load BigQuery schema from JSON file"""
         try:
             with open(schema_file, 'r') as f:
                 schema_json = json.load(f)
 
             # Convert to BigQuery schema format
-            schema = []
+            schema: list[bigquery.SchemaField] = []
             for field in schema_json:
                 bq_field = bigquery.SchemaField(
                     name=field['name'],
@@ -56,7 +64,7 @@ class BigQueryLoader:
             logger.error(f"Failed to load schema from {schema_file}: {e}")
             raise
 
-    def _get_datetime_fields(self):
+    def _get_datetime_fields(self) -> list[str]:
         """Extract datetime field names from schema"""
         datetime_fields = [
             field.name for field in self.schema
@@ -65,7 +73,7 @@ class BigQueryLoader:
         logger.info(f"Identified {len(datetime_fields)} datetime fields: {datetime_fields}")
         return datetime_fields
 
-    def convert_record(self, record, in_place=False):
+    def convert_record(self, record: dict[str, Any], in_place: bool = False) -> dict[str, Any]:
         """
         Convert datetime fields in record to target timezone
 
@@ -78,7 +86,7 @@ class BigQueryLoader:
         """
         return self.datetime_converter.convert_record_datetimes(record, self.datetime_fields, in_place=in_place)
 
-    def insert_record(self, record):
+    def insert_record(self, record: dict[str, Any]) -> bool:
         """
         Insert a single record into BigQuery
 
@@ -93,7 +101,7 @@ class BigQueryLoader:
 
         return self.insert_records([converted_record])
 
-    def insert_records(self, records, max_retries=3):
+    def insert_records(self, records: list[dict[str, Any]], max_retries: int = 3) -> bool:
         """
         Insert multiple records into BigQuery using Load Job (Batch Insert) for cost optimization.
         
@@ -140,7 +148,7 @@ class BigQueryLoader:
                 logger.error(f"Job errors: {e.errors}")
             return False
 
-    def create_table_if_not_exists(self):
+    def create_table_if_not_exists(self) -> bool:
         """Create the BigQuery table if it doesn't exist"""
         try:
             table = bigquery.Table(self.table_ref, schema=self.schema)

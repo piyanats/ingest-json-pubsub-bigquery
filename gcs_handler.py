@@ -1,5 +1,6 @@
 import json
 import logging
+from typing import Any
 from google.cloud import storage
 
 logger = logging.getLogger(__name__)
@@ -11,7 +12,7 @@ class GCSHandler:
     # Default max file size: 100MB
     DEFAULT_MAX_FILE_SIZE_MB = 100
 
-    def __init__(self, bucket_name, project_id=None, max_file_size_mb=None):
+    def __init__(self, bucket_name: str, project_id: str | None = None, max_file_size_mb: int | None = None) -> None:
         """
         Initialize GCS handler
 
@@ -25,7 +26,7 @@ class GCSHandler:
         self.bucket = self.client.bucket(bucket_name)
         self.max_file_size_bytes = (max_file_size_mb or self.DEFAULT_MAX_FILE_SIZE_MB) * 1024 * 1024
 
-    def download_json_file(self, blob_name):
+    def download_json_file(self, blob_name: str) -> dict[str, Any] | list[Any] | None:
         """
         Download and parse JSON file from GCS
 
@@ -33,7 +34,7 @@ class GCSHandler:
             blob_name: Name/path of the file in GCS bucket
 
         Returns:
-            Parsed JSON data as Python object
+            Parsed JSON data as Python object (dict or list)
         """
         try:
             blob = self.bucket.blob(blob_name)
@@ -62,7 +63,7 @@ class GCSHandler:
             logger.error(f"Failed to download {blob_name} from GCS: {e}", exc_info=True)
             return None
 
-    def list_files(self, prefix=None):
+    def list_files(self, prefix: str | None = None) -> list[str]:
         """
         List files in the bucket
 

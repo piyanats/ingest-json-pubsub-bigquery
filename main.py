@@ -11,6 +11,7 @@ import logging
 import sys
 import signal
 import json
+from typing import Any, NoReturn
 from config import Config
 from gcs_handler import GCSHandler
 from bigquery_loader import BigQueryLoader
@@ -32,27 +33,33 @@ logger = logging.getLogger(__name__)
 class DataIngestionPipeline:
     """Main pipeline orchestrator"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize pipeline components"""
         # Validate configuration
         Config.validate()
 
         # Initialize handlers
-        self.gcs_handler = GCSHandler(
-            bucket_name=Config.GCS_BUCKET_NAME,
-            project_id=Config.GCP_PROJECT_ID
-        )
+        if Config.GCS_BUCKET_NAME and Config.GCP_PROJECT_ID:
+            self.gcs_handler = GCSHandler(
+                bucket_name=Config.GCS_BUCKET_NAME,
+                project_id=Config.GCP_PROJECT_ID
+            )
+        else:
+            raise ValueError("GCS Config missing")
 
-        self.bq_loader = BigQueryLoader(
-            project_id=Config.GCP_PROJECT_ID,
-            dataset_id=Config.BQ_DATASET_ID,
-            table_id=Config.BQ_TABLE_ID,
-            schema_file=Config.BQ_SCHEMA_FILE,
-            target_timezone=Config.TARGET_TIMEZONE
-        )
+        if Config.GCP_PROJECT_ID and Config.BQ_DATASET_ID and Config.BQ_TABLE_ID:
+            self.bq_loader = BigQueryLoader(
+                project_id=Config.GCP_PROJECT_ID,
+                dataset_id=Config.BQ_DATASET_ID,
+                table_id=Config.BQ_TABLE_ID,
+                schema_file=Config.BQ_SCHEMA_FILE,
+                target_timezone=Config.TARGET_TIMEZONE
+            )
+        else:
+            raise ValueError("BigQuery Config missing")
         
         # Initialize Dead Letter Publisher if configured
-        self.dl_publisher = None
+        self.dl_publisher: PubSubPublisher | None = None
         if Config.PUBSUB_DEAD_LETTER_TOPIC_ID:
             self.dl_publisher = PubSubPublisher(
                 project_id=Config.GCP_PROJECT_ID,
@@ -66,17 +73,17 @@ class DataIngestionPipeline:
         self.bq_loader.create_table_if_not_exists()
 
         # Track listener for cleanup
-        self.listener = None
+        self.listener: PubSubListener | None = None
         self.shutdown_requested = False
 
         logger.info("Pipeline initialized successfully")
 
-    def request_shutdown(self, signum=None, frame=None):
+    def request_shutdown(self, signum: int | None = None, frame: Any | None = None) -> None:
         """Request graceful shutdown"""
         logger.info("Shutdown requested, cleaning up...")
         self.shutdown_requested = True
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """Cleanup resources"""
         logger.info("Cleaning up resources...")
         # Close GCS client
@@ -87,7 +94,7 @@ class DataIngestionPipeline:
             self.bq_loader.client.close()
         logger.info("Cleanup complete")
 
-    def process_message(self, filename, message):
+    def process_message(self, filename: str, message: Any) -> bool:
         """
         Process a single Pub/Sub message
 
@@ -110,6 +117,7 @@ class DataIngestionPipeline:
                 # maybe we should DLT it too? For now, let's treat it as failure.
                 return self._handle_failure(filename, "File download failed")
 
+            records: list[dict[str, Any]]
             # Handle both single record and array of records
             if isinstance(data, dict):
                 records = [data]
@@ -134,7 +142,7 @@ class DataIngestionPipeline:
             logger.error(f"Error processing message for {filename}: {e}", exc_info=True)
             return self._handle_failure(filename, str(e))
 
-    def _handle_failure(self, filename, error_reason):
+    def _handle_failure(self, filename: str, error_reason: str) -> bool:
         """
         Handle processing failure by publishing to Dead Letter Topic if available.
         
@@ -172,7 +180,7 @@ class DataIngestionPipeline:
             # No DLT configured, just return False to NACK
             return False
 
-    def run(self):
+    def run(self) -> None:
         """Start the pipeline"""
         logger.info("Starting data ingestion pipeline...")
 
@@ -180,23 +188,26 @@ class DataIngestionPipeline:
         signal.signal(signal.SIGINT, self.request_shutdown)
         signal.signal(signal.SIGTERM, self.request_shutdown)
 
-        # Create Pub/Sub listener
-        self.listener = PubSubListener(
-            project_id=Config.GCP_PROJECT_ID,
-            subscription_id=Config.PUBSUB_SUBSCRIPTION_ID,
-            callback=self.process_message,
-            max_messages=Config.MAX_MESSAGES,
-            ack_deadline=Config.ACK_DEADLINE_SECONDS
-        )
+        if Config.GCP_PROJECT_ID and Config.PUBSUB_SUBSCRIPTION_ID:
+            # Create Pub/Sub listener
+            self.listener = PubSubListener(
+                project_id=Config.GCP_PROJECT_ID,
+                subscription_id=Config.PUBSUB_SUBSCRIPTION_ID,
+                callback=self.process_message,
+                max_messages=Config.MAX_MESSAGES,
+                ack_deadline=Config.ACK_DEADLINE_SECONDS
+            )
 
-        try:
-            # Start listening
-            self.listener.listen()
-        finally:
-            self.cleanup()
+            try:
+                # Start listening
+                self.listener.listen()
+            finally:
+                self.cleanup()
+        else:
+            logger.error("Missing Pub/Sub config")
 
 
-def main():
+def main() -> None:
     """Main entry point"""
     pipeline = None
     try:

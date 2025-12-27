@@ -1,8 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from dateutil import parser
-import pytz
 import logging
 import copy
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -10,10 +11,10 @@ logger = logging.getLogger(__name__)
 class DateTimeConverter:
     """Handles datetime conversion from various formats and timezones to target timezone"""
 
-    def __init__(self, target_timezone='Asia/Bangkok'):
-        self.target_tz = pytz.timezone(target_timezone)
+    def __init__(self, target_timezone: str = 'Asia/Bangkok') -> None:
+        self.target_tz = ZoneInfo(target_timezone)
 
-    def convert_to_target_timezone(self, datetime_value):
+    def convert_to_target_timezone(self, datetime_value: str | datetime | int | float | None) -> datetime | None:
         """
         Convert datetime from any format/timezone to target timezone
 
@@ -27,6 +28,8 @@ class DateTimeConverter:
             return None
 
         try:
+            dt: datetime
+            
             # Handle datetime object
             if isinstance(datetime_value, datetime):
                 dt = datetime_value
@@ -37,17 +40,17 @@ class DateTimeConverter:
             elif isinstance(datetime_value, (int, float)):
                 # Check if timestamp is in milliseconds (common in JavaScript)
                 # Timestamps after year 3000 are likely in milliseconds
-                if datetime_value > 32503680000:  # Jan 1, 3000 in seconds
-                    dt = datetime.fromtimestamp(datetime_value / 1000, tz=pytz.UTC)
+                if datetime_value > 32_503_680_000:  # Jan 1, 3000 in seconds
+                    dt = datetime.fromtimestamp(datetime_value / 1000, tz=timezone.utc)
                 else:
-                    dt = datetime.fromtimestamp(datetime_value, tz=pytz.UTC)
+                    dt = datetime.fromtimestamp(datetime_value, tz=timezone.utc)
             else:
                 logger.warning(f"Unsupported datetime type: {type(datetime_value)}")
                 return None
 
             # If datetime is naive (no timezone), assume UTC
             if dt.tzinfo is None:
-                dt = pytz.UTC.localize(dt)
+                dt = dt.replace(tzinfo=timezone.utc)
 
             # Convert to target timezone
             target_dt = dt.astimezone(self.target_tz)
@@ -59,7 +62,12 @@ class DateTimeConverter:
             logger.error(f"Failed to convert datetime '{datetime_value}': {e}")
             return None
 
-    def convert_record_datetimes(self, record, datetime_fields, in_place=False):
+    def convert_record_datetimes(
+        self, 
+        record: dict[str, Any], 
+        datetime_fields: list[str], 
+        in_place: bool = False
+    ) -> dict[str, Any]:
         """
         Convert all datetime fields in a record to target timezone
 
@@ -71,6 +79,8 @@ class DateTimeConverter:
         Returns:
             Modified record with converted datetime fields
         """
+        target_record: dict[str, Any]
+        
         if in_place:
             target_record = record
         else:
